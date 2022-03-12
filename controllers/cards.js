@@ -13,7 +13,6 @@ module.exports.createCard = (req, res) => {
   Card.create({ name, link, owner: req.user })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
-      console.dir(err);
       if (err.name === "ValidationError") {
         return res.status(400).send({ message: "Переданы невалидные данные" });
       }
@@ -31,6 +30,9 @@ module.exports.deleteCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Неверный id карточки" });
+      }
       if (err.statusCode === 404) {
         return res.status(404).send({ message: err.errorMessage });
       }
@@ -47,6 +49,9 @@ module.exports.likeCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Неверный id карточки" });
+      }
       if (err.statusCode === 404) {
         return res.status(404).send({ message: err.errorMessage });
       }
@@ -65,6 +70,9 @@ module.exports.dislikeCard = (req, res) => {
     })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Неверный id карточки" });
+      }
       if (err.statusCode === 404) {
         return res.status(404).send({ message: err.errorMessage });
       }

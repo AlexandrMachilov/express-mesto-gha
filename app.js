@@ -14,7 +14,10 @@ async function main() {
   await mongoose.connect("mongodb://localhost:27017/mestodb", {
     useNewUrlParser: true,
   });
-
+  app.use((req, res, next) => {
+    res.status(404).send({ messgae: "Sorry can't find that!" });
+    next();
+  });
   app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`);
   });
