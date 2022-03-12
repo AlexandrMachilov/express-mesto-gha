@@ -12,10 +12,11 @@ module.exports.getUsers = (req, res) => {
 module.exports.getUser = (req, res) => {
   User.findById(req.params.id)
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
+      console.dir(err);
       if (err.name === "CastError") {
         return res.status(400).send({ message: "Неверный id пользователя" });
       }
@@ -55,7 +56,7 @@ module.exports.editUser = (req, res) => {
     }
   )
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {
@@ -82,7 +83,7 @@ module.exports.editUsersAvatar = (req, res) => {
     }
   )
     .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${id} не найден`);
+      throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
     })
     .then((user) => res.send({ data: user }))
     .catch((err) => {

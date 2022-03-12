@@ -15,7 +15,7 @@ async function main() {
     useNewUrlParser: true,
   });
   app.use((req, res, next) => {
-    res.status(404).send({ messgae: "Sorry can't find that!" });
+    res.status(404).send({ message: "Sorry can't find that!" });
     next();
   });
   app.listen(PORT, () => {
