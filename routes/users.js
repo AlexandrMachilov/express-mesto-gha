@@ -20,8 +20,3 @@ usersRoutes.patch("/me", editUser);
 usersRoutes.patch("/me/avatar", editUsersAvatar);
 
 module.exports = usersRoutes;
-
-/* {"name": "John",
- "about": "Doe",
- "avatar": "https://cdnn21.img.ria.ru/images/156266/34/1562663413_545:0:1625:1080_1920x0_80_0_0_3172fc6e73334088e2938263ce57ee5a.jpg"
- } */

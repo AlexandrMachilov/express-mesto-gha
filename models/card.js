@@ -16,7 +16,6 @@ const cardSchema = new mongoose.Schema({
     ref: "user",
     required: true,
   },
-  // возможно требует корректировки
   likes: [
     {
       default: [],
