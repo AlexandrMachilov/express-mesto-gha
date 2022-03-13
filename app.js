@@ -26,5 +26,5 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use((req, res) => {
-  res.status(404).send({ messgae: "Sorry can't find that!" });
+  res.status(404).send({ message: "Sorry can't find that!" });
 });
