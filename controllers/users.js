@@ -1,46 +1,61 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
+const ErrorConflict = require('../errors/ErrorConflict');
+const ErrorUnauthorized = require('../errors/ErrorUnauthorized');
+const { SALT_ROUNDS, JWT_SECRET } = require('../config/config');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 };
 
-module.exports.getUser = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.id)
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => res.send({ data: user }))
+    .catch(next);
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
     .orFail(() => {
       throw new ErrorNotFound(`Пользователь с id ${req.params.id} не найден`);
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Неверный id пользователя' });
-      }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
-      }
-      return res.status(500).send({ message: err.errorMessage });
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        throw new ErrorConflict(`Пользователь ${email} уже существует`);
+      }
+      return bcrypt.hash(password, SALT_ROUNDS);
+    })
+
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => User.findOne({ _id: user._id }))
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы невалидные данные' });
-      }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
-      }
-      return res.status(500).send({ message: 'Произошла ошибка' });
-    });
+    .catch(next);
 };
 
-module.exports.editUser = (req, res) => {
+module.exports.editUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -55,18 +70,10 @@ module.exports.editUser = (req, res) => {
       throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы невалидные данные' });
-      }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
-      }
-      return res.status(500).send({ message: 'Произошла ошибка' });
-    });
+    .catch(next);
 };
 
-module.exports.editUsersAvatar = (req, res) => {
+module.exports.editUsersAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -81,13 +88,34 @@ module.exports.editUsersAvatar = (req, res) => {
       throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
     })
     .then((user) => res.send({ data: user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы невалидные данные' });
-      }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: err.errorMessage });
-      }
-      return res.status(500).send({ message: 'Произошла ошибка' });
-    });
+    .catch(next);
 };
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  User.findOne({ email })
+    .select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new ErrorUnauthorized('Неправильные email или пароль');
+      }
+      return bcrypt.compare(password, user.password).then((isValid) => {
+        if (!isValid) {
+          throw new ErrorUnauthorized('Неправильные email или пароль');
+        }
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+          expiresIn: '7d',
+        });
+        res.send({ jwt: token });
+      });
+    })
+
+    .catch(next);
+};
+// '623f541a4bfa8fa1869fa285'
+// добавить куки после теста
+/* res.cookie('jwt', token, {
+        maxAge: 3600000,
+        httpOnly: true,
+      }); */

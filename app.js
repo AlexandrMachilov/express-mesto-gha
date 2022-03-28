@@ -1,5 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { login, createUser } = require('./controllers/users');
+const { auth } = require('./middlewares/auth');
+const errorHandler = require('./middlewares/errorHandler');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -15,16 +18,13 @@ async function main() {
 
 main();
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '62279ceea4b1a552ec6903fd',
-  };
-  next();
-});
-
+app.post('/signin', login);
+app.post('/signup', createUser);
+app.use(auth);
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
+app.use(errorHandler);
 app.use((req, res) => {
   res.status(404).send({ message: "Sorry can't find that!" });
 });
