@@ -3,11 +3,8 @@ const errorHandler = (err, req, res, next) => {
   // eslint-disable-next-line no-console
   console.log(err.stack || err);
   const status = err.statusCode || 500;
-  if (err.name === 'ValidationError') {
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
     return res.status(400).send({ message: 'Переданы невалидные данные', err });
-  }
-  if (err.name === 'CastError') {
-    return res.status(400).send({ message: 'Неверный id' });
   }
   if (err.statusCode === 404) {
     return res.status(404).send({ message: err.errorMessage });

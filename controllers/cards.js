@@ -17,17 +17,18 @@ module.exports.createCard = (req, res, next) => {
 };
 
 module.exports.deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.id)
-    .orFail(() => {
-      throw new ErrorNotFound(`Карточка с id ${req.params.id} не найдена`);
-    })
+  Card.findById(req.params.id)
     .then((card) => {
-      console.log(req.user._id);
-      console.log(card.owner._id);
-      if (req.user._id !== card.owner) {
+      if (req.user._id !== card.owner.toString()) {
         throw new ErrorForbidden('Можно удалять только свои карточки');
       }
-      res.send({ data: card });
+      Card.findByIdAndRemove(req.params.id)
+        .orFail(() => {
+          throw new ErrorNotFound(`Карточка с id ${req.params.id} не найдена`);
+        })
+        .then(() => {
+          res.send({ data: card });
+        });
     })
     .catch(next);
 };
@@ -47,7 +48,7 @@ module.exports.dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.id,
     { $pull: { likes: req.user._id } },
-    { new: true }
+    { new: true },
   )
     .orFail(() => {
       throw new ErrorNotFound(`Карточка с id ${req.params.id} не найдена`);

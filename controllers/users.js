@@ -4,6 +4,8 @@ const User = require('../models/user');
 const ErrorNotFound = require('../errors/ErrorNotFound');
 const ErrorConflict = require('../errors/ErrorConflict');
 const ErrorUnauthorized = require('../errors/ErrorUnauthorized');
+const ErrorForbidden = require('../errors/ErrorForbidden');
+
 const { SALT_ROUNDS, JWT_SECRET } = require('../config/config');
 
 module.exports.getUsers = (req, res, next) => {
@@ -57,37 +59,51 @@ module.exports.createUser = (req, res, next) => {
 
 module.exports.editUser = (req, res, next) => {
   const { name, about } = req.body;
-
-  User.findByIdAndUpdate(
-    req.user._id,
-    { name, about },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
+  User.findById(req.user._id)
+    .then((user) => {
+      if (req.user._id !== user._id.toString()) {
+        throw new ErrorForbidden('Можно редактировать только свои данные');
+      }
+      User.findByIdAndUpdate(
+        req.user._id,
+        { name, about },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+        .orFail(() => {
+          throw new ErrorNotFound(
+            `Пользователь с id ${req.user._id} не найден`,
+          );
+        })
+        .then(() => {
+          res.send({ data: user });
+        });
     })
-    .then((user) => res.send({ data: user }))
     .catch(next);
 };
 
 module.exports.editUsersAvatar = (req, res, next) => {
   const { avatar } = req.body;
-
-  User.findByIdAndUpdate(
-    req.user._id,
-    { avatar },
-    {
-      new: true,
-      runValidators: true,
-    },
-  )
-    .orFail(() => {
-      throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
+  User.findById(req.user._id)
+    .then((user) => {
+      if (req.user._id !== user._id.toString()) {
+        throw new ErrorForbidden('Можно редактировать только свои данные');
+      }
+      User.findByIdAndUpdate(
+        req.user._id,
+        { avatar },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
+        .orFail(() => {
+          throw new ErrorNotFound(`Пользователь с id ${req.user._id} не найден`);
+        })
+        .then(() => res.send({ data: user }));
     })
-    .then((user) => res.send({ data: user }))
     .catch(next);
 };
 
@@ -113,7 +129,7 @@ module.exports.login = (req, res, next) => {
 
     .catch(next);
 };
-// '623f541a4bfa8fa1869fa285'
+
 // добавить куки после теста
 /* res.cookie('jwt', token, {
         maxAge: 3600000,
