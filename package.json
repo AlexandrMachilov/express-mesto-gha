@@ -10,7 +10,7 @@
   "name": "express-mesto-gha",
   "description": "[![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-13-sprint.yml) [![Tests](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml/badge.svg)](https://github.com/yandex-praktikum/express-mesto-gha/actions/workflows/tests-14-sprint.yml)\r # Проект Mesto фронтенд + бэкенд",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "app.js",
   "devDependencies": {
     "eslint": "^8.10.0",
     "eslint-config-airbnb-base": "^15.0.0",
@@ -27,7 +27,7 @@
     "type": "git",
     "url": "git+https://github.com/AlexandrMachilov/express-mesto-gha.git"
   },
-  "author": "",
+  "author": "AlexandrMachilov",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/AlexandrMachilov/express-mesto-gha/issues"
